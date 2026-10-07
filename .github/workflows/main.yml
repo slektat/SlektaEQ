@@ -1,8 +1,6 @@
 name: Build SlektaEQ APK
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,26 +12,27 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        
-      - name: Unzip if needed
+
+      - name: Extract project
         run: |
-          ZIPFILE=$(ls -1 *.zip 2>/dev/null | head -n1 || true)
-          if [ -f "$ZIPFILE" ]; then
-            unzip -o "$ZIPFILE" -d temp_extract
-            cp -r temp_extract/* . 2>/dev/null || true
-            rm -rf temp_extract
-          fi
+          ls -la
+          ZIP=$(ls *.zip | head -n1)
+          echo "Unzipping $ZIP"
+          unzip -o "$ZIP"
+          rm "$ZIP"
+          for f in */; do
+            if [ -f "$f/gradlew" ]; then
+              echo "Found gradlew in $f"
+              cp -r $f/* .
+              cp -r $f/.* . 2>/dev/null || true
+            fi
+          done
           for d in SlektaEQ_Full SlektaEQ_IceBlue SlektaEQ_Project HonorSoundBoosterV2; do
             if [ -d "$d" ]; then cp -r $d/* .; rm -rf $d; fi
           done
           ls -la
-
-      - name: Grant permission
-        run: chmod +x gradlew
-        
+          chmod +x gradlew
+          
       - name: Build APK
         run: ./gradlew assembleDebug --stacktrace
         
