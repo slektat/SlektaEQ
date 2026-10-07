@@ -6,36 +6,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Extract project
         run: |
           ls -la
-          ZIP=$(ls *.zip | head -n1)
-          echo "Unzipping $ZIP"
-          unzip -o "$ZIP"
-          rm "$ZIP"
-          for f in */; do
-            if [ -f "$f/gradlew" ]; then
-              echo "Found gradlew in $f"
-              cp -r $f/* .
-              cp -r $f/.* . 2>/dev/null || true
-            fi
-          done
-          for d in SlektaEQ_Full SlektaEQ_IceBlue SlektaEQ_Project HonorSoundBoosterV2; do
-            if [ -d "$d" ]; then cp -r $d/* .; rm -rf $d; fi
-          done
+          FILE=$(ls | grep -i SlektaEQ | head -n1)
+          if [[ "$FILE" == *.html ]]; then mv "$FILE" "${FILE%.html}"; FILE="${FILE%.html}"; fi
+          unzip -o "$FILE"
+          rm "$FILE" || true
+          for f in */; do if [ -f "$f/gradlew" ]; then cp -r $f/* .; cp -r $f/.* . 2>/dev/null || true; fi; done
           ls -la
           chmod +x gradlew
-          
       - name: Build APK
         run: ./gradlew assembleDebug --stacktrace
-        
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
