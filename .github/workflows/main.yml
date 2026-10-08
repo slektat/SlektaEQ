@@ -13,12 +13,14 @@ jobs:
           distribution: 'temurin'
       - name: Extract project
         run: |
-          ls -la
-          FILE=$(ls | grep -i SlektaEQ | head -n1)
-          if [[ "$FILE" == *.html ]]; then mv "$FILE" "${FILE%.html}"; FILE="${FILE%.html}"; fi
-          unzip -o "$FILE"
-          rm "$FILE" || true
-          for f in */; do if [ -f "$f/gradlew" ]; then cp -r $f/* .; cp -r $f/.* . 2>/dev/null || true; fi; done
+          ZIP=$(find . -maxdepth 1 -name "*.zip" | head -n1)
+          unzip -o "$ZIP"
+          rm "$ZIP"
+          if [ -d "HonorSoundBoosterV2" ]; then cp -r HonorSoundBoosterV2/* .; rm -rf HonorSoundBoosterV2; fi
+          rm -f gradlew_* build.gradle_*.kts settings.gradle_*.kts README_APK*
+          rm -f app/build.gradle_*.kts
+          rm -f app/src/main/AndroidManifest_*.xml
+          rm -rf app/src/main/res/layout/activity_main_*.xml
           ls -la
           chmod +x gradlew
       - name: Build APK
