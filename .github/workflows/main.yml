@@ -1,6 +1,5 @@
 name: Build SlektaEQ APK
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,17 +12,18 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.4
-      - name: Extract project
+      - name: Extract and clean
         run: |
           ZIP=$(find . -maxdepth 1 -name "*.zip" | head -n1)
           unzip -o "$ZIP"
           rm "$ZIP"
-          if [ -d "HonorSoundBoosterV2" ]; then cp -r HonorSoundBoosterV2/* .; rm -rf HonorSoundBoosterV2; fi
-          rm -f app/src/main/res/values/colors_*.xml app/src/main/res/values/themes_*.xml app/src/main/res/layout/activity_main_*.xml app/src/main/AndroidManifest_*.xml app/src/main/java/com/tibor/honorsoundbooster/MainActivity_*.kt app/build.gradle_*.kts
-          sed -i 's/textColor="white"/textColor="#FFFFFF"/g' app/src/main/res/layout/activity_main.xml
+          cp -r HonorSoundBoosterV2/* . 2>/dev/null || true
+          rm -rf HonorSoundBoosterV2
+          rm -f app/src/main/res/values/colors_*.xml app/src/main/res/values/themes_*.xml app/src/main/res/layout/activity_main_*.xml app/src/main/AndroidManifest_*.xml app/src/main/java/com/tibor/honorsoundbooster/MainActivity_*.kt app/build.gradle_*.kts gradle/wrapper/gradle-wrapper_*.properties
+          sed -i 's/"white"/"#FFFFFF"/g' app/src/main/res/layout/activity_main.xml
           chmod +x gradlew
       - name: Build APK
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: SlektaEQ-APK
