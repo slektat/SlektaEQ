@@ -21,29 +21,28 @@ jobs:
           unzip -o "$ZIP"
           rm "$ZIP"
           if [ -d "HonorSoundBoosterV2" ]; then cp -r HonorSoundBoosterV2/* .; rm -rf HonorSoundBoosterV2; fi
+          # Töröljük a duplikált _1, _2 fájlokat
           rm -f gradlew_* build.gradle_*.kts settings.gradle_*.kts README_APK*
           rm -f app/build.gradle_*.kts
-          ls -la
-      - name: Fix settings
+          find app/src -name "*_*.kt" -delete
+          find app/src -name "*_*.xml" -delete
+          ls -R app/src | head -n 100
+      - name: Fix settings and SDK
         run: |
           cat > settings.gradle.kts <<'EOF'
           pluginManagement {
-            repositories {
-              google()
-              mavenCentral()
-              gradlePluginPortal()
-            }
+            repositories { google(); mavenCentral(); gradlePluginPortal() }
           }
           dependencyResolutionManagement {
             repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-            repositories {
-              google()
-              mavenCentral()
-            }
+            repositories { google(); mavenCentral() }
           }
           include(":app")
           EOF
-          cat settings.gradle.kts
+          # 35 -> 34 mert 35 nincs a GitHub gépen
+          sed -i 's/compileSdk = 35/compileSdk = 34/' app/build.gradle.kts
+          sed -i 's/targetSdk = 35/targetSdk = 34/' app/build.gradle.kts
+          cat app/build.gradle.kts
       - name: Build APK
         run: gradle assembleDebug --stacktrace
       - name: Upload APK
