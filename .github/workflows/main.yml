@@ -21,17 +21,31 @@ jobs:
           unzip -o "$ZIP"
           rm "$ZIP"
           if [ -d "HonorSoundBoosterV2" ]; then cp -r HonorSoundBoosterV2/* .; rm -rf HonorSoundBoosterV2; fi
-          rm -f gradlew_* build.gradle_*.kts settings.gradle_*.kts README_APK* app/build.gradle_*.kts
-          rm -rf gradle
-          rm -f gradlew gradlew.bat
+          rm -f gradlew_* build.gradle_*.kts settings.gradle_*.kts README_APK*
+          rm -f app/build.gradle_*.kts
           ls -la
-      - name: Create real wrapper
+      - name: Fix settings
         run: |
-          gradle wrapper --gradle-version 8.4
-          chmod +x gradlew
-          ls -la gradle/wrapper/
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement {
+            repositories {
+              google()
+              mavenCentral()
+              gradlePluginPortal()
+            }
+          }
+          dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+              google()
+              mavenCentral()
+            }
+          }
+          include(":app")
+          EOF
+          cat settings.gradle.kts
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
